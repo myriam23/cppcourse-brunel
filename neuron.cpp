@@ -2,6 +2,7 @@
 #include <array>
 #include <vector>
 #include <cmath>
+#include <ifstream> 
 
 Neuron::Neuron() {} 
 Neuron::~Neuron(){} 
@@ -26,4 +27,8 @@ double Neuron::spikes_number()
 {
 	return spike_time_.size(); 
 	
+}
+
+void Neuron::write_in_file() 
+{
 }
