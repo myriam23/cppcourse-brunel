@@ -1,10 +1,9 @@
 #include "neuron.hpp"
-#include <array>
 #include <vector>
 #include <cmath>
 #include <fstream> 
 #include <iostream> 
-
+#include <array>
 using namespace std; 
 Neuron::Neuron() {} 
 Neuron::~Neuron(){} 
@@ -28,40 +27,58 @@ void Neuron::update_state_(std::vector<double> tab, double i, double dt)
 						
 			//cout << "current_time" << current_time_ << endl; 
 			cout << "membrane pot " << membrane_potential_ << endl; 
+			
 			if(membrane_potential_ > spike_potential_) 
 			{ 
 				cout << "SPIKING " << endl; 
+			number_spikes += 1; 
 			
-			spike_time_.push_back(current_time_); 
+			std::array<double, 2> temp; 
+			temp[0] = membrane_potential_; 
+			
+			temp[1] = current_time_;
+			
+			cout << "pote membrane " << temp[0] << endl; 
+			cout << " temps " << temp[1] << endl; 
+			 
+			membranepot_spiketime_.push_back(temp); 
+			
 			}	
 		}
 	}
+		cout << "You have reached the end of your interval. " << endl; 
 			
 }
 
-double Neuron::spikes_number() 
+/*double Neuron::spikes_number() 
 {
 	return spike_time_.size(); 
 	
 }
-
+*/
 void Neuron::write_in_file() 
 {
-	if(spikes_number() != 0) { 
+	if(number_spikes != 0) { 
 		ofstream mySpikes("mySpikes.txt"); 
 		if(mySpikes.is_open())
 		{
 			int i;
+			int j; 
+			
+			cout << " lingne 1 " << membranepot_spiketime_[0][0] << "...." << membranepot_spiketime_[0][1] << endl; 
 		//cout << "nombre spike " << spikes_number() << endl;
-			for(i = 0; i <= spikes_number(); ++i) 
-		{ 
+			for(i = 0; i <= number_spikes; ++i) 
+				{ 
+					for(j = 0; j <2; ++j) 
+						{
 			//cout << "writing loop " << endl; 
-		mySpikes << spike_time_[i] << endl; 
+				mySpikes << membranepot_spiketime_[i][j] << endl; 
 		}
+	}
 		mySpikes.close();
 		//cout << "CLOSED " << endl; 
 		}else{ 
-				cout << "Unable to save spike time." << endl; 
+				cout << "Unable to save spike time and membrane potential." << endl; 
 			} 
 	} 
 }
