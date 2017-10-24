@@ -1,0 +1,40 @@
+#IncludeRegexLine: ^[ 	]*#[ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/INTRANET/mghali/myfiles/ba3/neuron/src/connexion.hpp
+
+/home/INTRANET/mghali/myfiles/ba3/neuron/src/network.hpp
+neuron.hpp
+/home/INTRANET/mghali/myfiles/ba3/neuron/src/neuron.hpp
+vector
+-
+
+/home/INTRANET/mghali/myfiles/ba3/neuron/src/neuron.hpp
+vector
+-
+array
+-
+string
+-
+connexion.hpp
+/home/INTRANET/mghali/myfiles/ba3/neuron/src/connexion.hpp
+
+/home/INTRANET/mghali/myfiles/ba3/neuron/src/neuron_main.cpp
+array
+-
+neuron.hpp
+/home/INTRANET/mghali/myfiles/ba3/neuron/src/neuron.hpp
+cmath
+-
+iostream
+-
+vector
+-
+network.hpp
+/home/INTRANET/mghali/myfiles/ba3/neuron/src/network.hpp
+
