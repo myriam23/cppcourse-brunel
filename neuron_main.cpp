@@ -3,22 +3,24 @@
 #include <cmath> 
 #include <iostream>
 #include <vector> 
-#include "neuron_excitatory.hpp"
+#include "network.hpp"
 
 using namespace std; 
+
 
 int main()
 {
 	double start_time_(0);
 	double stop_time(1000); 
-	double time_increment_(10); 
+	double time_inc(0.1); 
 	double simulation_clock(0); 
-	double input_current_; 
+	double input_current_ = 0; 
 	vector<double> time_interval_; 
 	
 	cout << "Welcome to neurone simulation. Please input the current you would like to apply." << endl; 
 	cin >> input_current_; 
-	
+	int c; 
+	ind d;
 	do { 
 		cout << "Which interval, between 0 and 1000ms, would you like to consider ? " << endl; 
 		double a; 
@@ -27,33 +29,33 @@ int main()
 		cin >> b; 
 		time_interval_.push_back(a);
 		time_interval_.push_back(b); 
-		cout << "b " << b << endl; 
-		cout << " intervalle main " << time_interval_[0] << " " << time_interval_[1] << endl;
-		} while ((time_interval_[0] < start_time_) or (time_interval_[1] > stop_time));  
-	
-	simulation_clock = time_interval_[0]; 
-	
-	/*Neuron sample_; 
-	//cout << " intervalle main " << time_interval_[1] << " " << time_interval_[2] << endl; 
-	sample_.update_state_(time_interval_, input_current_, time_increment_); 
-	sample_.write_in_file(); 
-	//cout << "input current " << input_current_ << endl; */
-	
-	Neuron sample_1(simulation_clock); 
-	Neuron sample_2(simulation_clock); 
-	
-	if(simulation_clock < time_interval_[1]) { 
-		sample_1.update_state_(time_increment_, simulation_clock, time_interval_, input_current_); 
 		
-		sample_1.interact(sample_2); 
+		cout<<"How many excitatory neurons do you want in your network ?" << endl; 
+		cin >>c;
+		cout<<"How many inhibitory neurons do you want in your network ?" << endl; 
+		cin >> d;
 		
-		sample_2.update_state_(time_increment_, simulation_clock); 
-		simulation_clock += time_increment_; 
-	}else{ 
+	 
+	 } while ((time_interval_[0] < start_time_) or (time_interval_[1] > stop_time));  
+	
+	simulation_clock = time_interval_[0];
+	
+														
+	
+	Network network(simulation_clock, time_inc, input_current_, 1.5, 0.1, d, c );
+	
+	while(simulation_clock < time_interval_[1]) { //specified here instead of inside the method update so I dont need to give the interval tab
+		
+		network.update(); 
+
+		simulation_clock += time_inc; 	 
+
+	}
+	
+	network.getPop(); 
+	network.write();
 		cout << "The simulation has ended." << endl;
-	
-	
 	
 }
 
-}
+
