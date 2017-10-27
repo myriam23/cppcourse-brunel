@@ -17,11 +17,11 @@ class Neuron {
 	
 	bool update_state_();
 	
-	
 	///buffer methods 
 	double read_buffer(); 
 	void write_buffer(int); 
-	
+	double get_buffer(int) const; 
+	std::vector<double> get_buffer2() const; 
 	///time and steps conversion
 	double current_step(); 
 	int time_to_steps(double); 
@@ -29,10 +29,13 @@ class Neuron {
 	
 	///getters and setters
 	void set_i_ext(double); 
-	double get_v_m(); 
-	std::vector<int> get_MyTargets_(); 
-	bool Is_it_excitatory(); 
+	double get_v_m() const; 
+	std::vector<int> get_MyTargets_() ; 
+	void set_MyTargets(int); 
+	void fill_MyTargets(int, int); 
+	bool Is_it_excitatory() const; 
 	void set_type(bool); 
+
 	
 	///methods for txt files 
 	void write_in_file(); 
@@ -59,9 +62,7 @@ class Neuron {
 	std::vector<int> MyTargets_;  
 	std::vector<double> Ring_buffer_;
 	std::vector<std::array<double,2>> membranepot_spiketime_; 
-	
-	
-	
+		
 	/*///Parameters according to brunnel: 
 		///Connections 
 		double excitatory_connections_ = 4 * inhibitory_connections_; 
