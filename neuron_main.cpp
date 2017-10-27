@@ -60,8 +60,8 @@ int main()
 			network.current_buffers(); 
 
 		} else { 
-			
-			/*Network network(); 
+			/*
+			Network network(); 
 			
 			while(simulation_clock < time_interval_[1]) 
 			{ 
@@ -69,7 +69,8 @@ int main()
 				simulation_clock += time_inc; 	 
 			}
 			network.write();
-			network.current_buffers(); */
+			network.current_buffers();
+			*/
 		}  
 	
 	cout << "The simulation has ended." << endl;

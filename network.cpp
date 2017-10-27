@@ -210,6 +210,8 @@ void Network::create_matrix()
 			{ 
 				if( i = j) { TheMatrix_[i][j] = 0; }
 				else { TheMatrix_[i][j] = 1; }
+			}
+		}
 	/*	
 	int i = 0; 
 	for(auto& element : Population_) 
