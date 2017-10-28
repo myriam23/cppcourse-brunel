@@ -4,6 +4,8 @@
 #include <fstream> 
 #include <iostream> 
 #include <array>
+#include <random>
+#include <iomanip> 
 
 using namespace std; 
 
@@ -11,7 +13,6 @@ Neuron::Neuron()
 : membrane_potential_(0), number_spikes_(0), time_of_spike_(0),
 actual_time_(0), time_increment_(0.1), arriving_current_(1), 
 delay_(1.5), weight_(0.1), refractory_(false), excitatory_(true), 
-MyTargets_(10, 1), 
 Ring_buffer_(16,0) ///have to manually put the size of the ring buffer for the default constructor
 {
 }
@@ -34,11 +35,6 @@ refractory_(false), excitatory_(true)
 		Ring_buffer_.push_back(0);
 	}
 	
-	for(int a = 0; a < 10; ++a) 
-	{ 
-		MyTargets_.push_back(1);
-		}
-	
 } 
 Neuron::~Neuron(){} 
 
@@ -46,6 +42,7 @@ bool Neuron::update_state_()
 {			
 		if (!refractory_) 
 		{ 
+			random_input();
 			
 			membrane_potential_= ((exp(-time_increment_/tau_) * membrane_potential_) + (arriving_current_ * membrane_resistance_ * (1 - exp(-time_increment_/tau_)))) + read_buffer();//  + poisson gen = vext * J * h * Ce + ADD WEIGHT OF INCOMING SPIKES  
 			
@@ -61,7 +58,7 @@ bool Neuron::update_state_()
 				
 				time_of_spike_ = actual_time_;
 				save_spike(membrane_potential_, time_of_spike_);  
-				write_in_file(); 
+				//write_in_file(); 
 				membrane_potential_ = 0; 
 				
 				return true; 
@@ -153,12 +150,6 @@ double Neuron::get_v_m() const
 	return membrane_potential_; 
 } 
 
-std::vector<int> Neuron::get_MyTargets_() 
-{
-	return MyTargets_; 
-	
-}
-
 bool Neuron::Is_it_excitatory() const
 { 
 	return excitatory_; 
@@ -166,21 +157,9 @@ bool Neuron::Is_it_excitatory() const
 void Neuron::set_type(bool f)
 { 
 	excitatory_ = f; 
-	/*if(!excitatory_) 
-	{ 
-		weight_ *= (-5);
-	}*/
+
 }
 
-void Neuron::set_MyTargets(int t) 
-{ 
-	MyTargets_.resize(t); 
-}
-
-void Neuron::fill_MyTargets(int i, int  v) 
-{
-	MyTargets_[i] = v; 
-}
 
 double Neuron::get_buffer(int i) const
 {
@@ -191,3 +170,16 @@ std::vector<double> Neuron::get_buffer2() const
 {
 	return Ring_buffer_; 
 }
+
+
+void Neuron::random_input() 
+{
+	std::random_device number_random; 
+	std::mt19937 engine(number_random()); //random number generator 
+	
+	int v = teta_/(weight_ * tau_); 
+	std::poisson_distribution<int> poisson(v); //generate a poisson distribution with mean value = mean rate of firing v. 
+	int input = poisson(engine); //will call the poisson distribution on a randomly generated number 
+	write_buffer(input); 
+}
+	

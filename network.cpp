@@ -3,6 +3,8 @@
 #include <iostream> 
 #include <fstream> 
 
+
+
 Network::Network() ///default constructor
 :nbre_excitatory_(10000), nbre_inhibitory_(2500)
 {
@@ -12,7 +14,6 @@ Network::Network() ///default constructor
 	{ 
 		Neuron* N = new Neuron(); 
 		add_to_network(N); 
-		N->set_MyTargets(pop);
 
 	} 
 	
@@ -21,13 +22,9 @@ Network::Network() ///default constructor
 		Neuron* N = new Neuron(); 
 		add_to_network(N); 
 		N->set_type(false); 
-		N->set_MyTargets(pop); 
 
 	}
-	
-	create_connexions();  
-	create_matrix();
-	refine_network(); 
+	create_matrix(); 
 	
 }
 
@@ -40,8 +37,6 @@ Network::Network(double global, double t, double i, double del, double w, int Ni
 	{ 
 		Neuron* N = new Neuron(global, t, i, del, w); 
 		add_to_network(N); 
-		N->set_MyTargets(pop); 
-
 	} 
 	
 	for(int j = 0; j < nbre_inhibitory_; ++j) 
@@ -49,13 +44,9 @@ Network::Network(double global, double t, double i, double del, double w, int Ni
 		Neuron* N = new Neuron(global, t, i, del, w); 
 		add_to_network(N); 
 		N->set_type(false);
-		N->set_MyTargets(pop);  
-
 	}
-	
-	create_connexions();  
-	create_matrix(); 
-	refine_network(); 		
+	 
+	create_matrix(); 		
 }
 
 Network::~Network()
@@ -74,57 +65,35 @@ void Network::update()
 	int line = 0; 
 	for(auto& element : Population_) 
 	{ 
-		bool target = element->update_state_(); 
+		bool spiking = element->update_state_(); 
 		
-		if(target) 
+		if(spiking) 
 		{ 
 			for (int row = 0; row < getPop(); ++row) 
 			{ 
-				if(TheMatrix_[line][row] != 0) 
-				{ 
 					int g = 1; 
 					if(element->Is_it_excitatory() == false) 
 					{ 
 						g *= -5; 
 					}
-					Population_[row]->write_buffer(g*(TheMatrix_[line][row])); 
+					int j = TheMatrix_[line][row];  
+					Population_[row]->write_buffer(g*j); 
 					
 				}
 			}
-		}
-			
+			++line; 
 	}
+			
 }
+
 
 int Network::getPop()
 {
-	return Population_.size(); 
-	
+	return Population_.size(); 	
 }
 
 void Network::write()
-{
-	std::ofstream myTargets("myTargets.txt"); 
-	if(myTargets.is_open())
-	{
-		for(int j = 0; j < Population_.size(); ++j) /// used this type of loop instead of element because I want the number of the neuron
-		{
-			myTargets <<  "Neuron number " << 1+ j << " has the following connections:"  ; 
-			
-			for(int i = 0; i < Population_[j]->get_MyTargets_().size(); ++i) 
-			{		
-					myTargets << " " << Population_[j]->get_MyTargets_()[i] << " "; 
-					
-			}
-			
-			myTargets << " " << std::endl; 
-		}
-		
-	}else{ 
-		std::cerr << "Could not open MyTargets file." << std::endl; 
-		}
-	myTargets.close();
-	
+{	
 	std::ofstream matrix("mymatrix.txt"); 
 	if(matrix.is_open())
 	{
@@ -148,31 +117,14 @@ void Network::add_to_network(Neuron* n)
 	Population_.push_back(n); 	
 }			
 
-void Network::create_connexions() ///allows to fill the target tab of every neuron in the population by calling their setter. I dont want my neurons to have connections to themselves. 
-{ 
-	std::cout << "in create connex" << std::endl; 
-	
-	
-	
-	/*int i = 0; 	
-	for(auto& element : Population_)  
-	{ 	
-		for(int j = 0; j < element->get_MyTargets_().size(); ++j) 
-		{
-			int random = roll(1,10);	
-			if(i ==j) {random = 0;} 						
-			element->fill_MyTargets(j, random); 			
-		}
-	++i; 
-	}*/
-}
 
 int Network::roll(int min, int max)
 {
-	double x = rand()/static_cast<double>(RAND_MAX+1); 
-	int that = (min + static_cast<int>( x * (max - min)) * (-1));
-	
-	return that;
+	std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_int_distribution<> dis(min, max);
+    
+	return dis(gen);
 }
 
 void Network::current_buffers() ///buffers content at the end of the simulation
@@ -203,41 +155,75 @@ void Network::current_buffers() ///buffers content at the end of the simulation
 
 void Network::create_matrix()
 { 
-		std::cout << "in create matric" << std::endl; 
-		for(int i = 0; i < getPop(); ++i) 
-		{ 
-			for(int j = 0; j < getPop(); ++j) 
+		std::vector<int> temp(getPop(), 0); 
+		for(int line = 0; line < getPop(); ++line)
+		{
+			int i = 0; 
+			int max_ex = nbre_excitatory_ / 10; 
+			while(i < max_ex)
 			{ 
-				if( i = j) { TheMatrix_[i][j] = 0; }
-				else { TheMatrix_[i][j] = 1; }
+				int column = roll(0, nbre_excitatory_ -1); 
+				int random = roll(0,10);
+				if(temp[column]== 0) 
+				{
+					temp[column]  = random;
+					++i;
+				}
 			}
+			int j = nbre_excitatory_; 
+			int Max_in = nbre_inhibitory_ / 10; 
+			while(j < Max_in) 
+			{
+				int column = roll(nbre_excitatory_, getPop()); 
+				int random = roll(0,10); 
+				if(temp[column] == 0) 
+				{ 
+					temp[column] = random; 
+					++j;
+				}
+			}
+				
+			TheMatrix_[line] = temp; 
 		}
-	/*	
-	int i = 0; 
-	for(auto& element : Population_) 
-	{ 
-		TheMatrix_[i] = element->get_MyTargets_(); 	
-		++i;
-	} */
+		//refine_network();
 }
+	
 
 void Network::refine_network()
 {
-	
-	for(int j = 0; j < getPop(); ++j) 
+	for(int column = 0; column < getPop(); ++column) 
 	{
-		int i = getPop(); 
-		int max = i/10; 
-
-		while(i > max)
+		int i = nbre_excitatory_; 
+		int max = nbre_excitatory_ / 10; 
+		std::cout << "max ex " << max << std::endl; 
+		while(i > max) 
 		{
-			int rand = roll(0, getPop()); ///cannot use i here as it is decremented 			
-				if((j != rand) and (TheMatrix_[rand][j] != 0))  
-				{
-						--i; 
-					TheMatrix_[rand][j] = 0; 
-				}
+			
+			int row = roll(0, nbre_excitatory_); 
+			if(TheMatrix_[row][column] != 0)
+			{
+				std::cout << "changing matrix for ex " << std::endl; 
+				TheMatrix_[row][column] = 0; 
+				--i;
+			}
 		}
 		
+		int j = nbre_inhibitory_; 
+		int Max = nbre_inhibitory_ / 10; 
+		while(j > Max) 
+		{ 
+			
+			int row = roll(nbre_excitatory_ + 1, getPop()); 
+			if(TheMatrix_[row][column] != 0)
+			{ 
+				std::cout << "row " << row << " col " << column << " " << std::endl; 
+				TheMatrix_[row][column] = 0; 
+				--j;
+			}
+			std::cout << " j " <<j << std::endl; 
+		} 
 	}
 }
+
+	
+

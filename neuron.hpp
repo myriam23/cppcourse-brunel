@@ -1,7 +1,9 @@
 #include <vector>
 #include <array>
 #include <string> 
-
+#include <random>
+#include <iomanip> 
+#include <vector> 
 
 
 #ifndef NEURON_HPP
@@ -16,7 +18,7 @@ class Neuron {
 	
 	
 	bool update_state_();
-	
+	void random_input();
 	///buffer methods 
 	double read_buffer(); 
 	void write_buffer(int); 
@@ -30,9 +32,7 @@ class Neuron {
 	///getters and setters
 	void set_i_ext(double); 
 	double get_v_m() const; 
-	std::vector<int> get_MyTargets_() ; 
-	void set_MyTargets(int); 
-	void fill_MyTargets(int, int); 
+
 	bool Is_it_excitatory() const; 
 	void set_type(bool); 
 
@@ -59,7 +59,6 @@ class Neuron {
 	double delay_; 
 	double weight_; 
 	
-	std::vector<int> MyTargets_;  
 	std::vector<double> Ring_buffer_;
 	std::vector<std::array<double,2>> membranepot_spiketime_; 
 		
