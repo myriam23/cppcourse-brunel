@@ -5,48 +5,52 @@
 
 
 
-Network::Network() ///default constructor
+Network::Network(std::array<double, 2> temp) ///default constructor
 :nbre_excitatory_(10000), nbre_inhibitory_(2500)
 {
 	int pop = nbre_excitatory_+ nbre_inhibitory_; 
-	TheMatrix_.resize(pop); 
+ 
 	for(int i = 0; i < nbre_excitatory_; ++i) ///the first Ne elements of Populations_ will be excitatory neurons
 	{ 
-		Neuron* N = new Neuron(); 
+		Neuron* N = new Neuron(temp); 
 		add_to_network(N); 
 
 	} 
 	
 	for(int j = 0; j < nbre_inhibitory_; ++j) 
 	{ 
-		Neuron* N = new Neuron(); 
+		Neuron* N = new Neuron(temp); 
 		add_to_network(N); 
 		N->set_type(false); 
+		 
+
 
 	}
-	create_matrix(); 
+	create_connections(); 
 	
 }
 
-Network::Network(double global, double t, double i, double del, double w, int Ni, int Ne)
+Network::Network(std::array<double, 2> temp, double h, double i, double del, double w, int Ni, int Ne, int e)
 : nbre_excitatory_(Ne), nbre_inhibitory_ (Ni)
 { 
 	int pop = nbre_excitatory_+ nbre_inhibitory_;
-	TheMatrix_.resize(pop);
+	
 	for(int i = 0; i < nbre_excitatory_; ++i) ///the first Ne elements of Populations_ will be excitatory neurons
 	{ 
-		Neuron* N = new Neuron(global, t, i, del, w); 
+		Neuron* N = new Neuron(temp, h, i, del, w, e); 
 		add_to_network(N); 
+		
+
 	} 
 	
 	for(int j = 0; j < nbre_inhibitory_; ++j) 
 	{ 
-		Neuron* N = new Neuron(global, t, i, del, w); 
+		Neuron* N = new Neuron(temp, h, i, del, w, e); 
 		add_to_network(N); 
-		N->set_type(false);
+		N->set_type(false); 
 	}
 	 
-	create_matrix(); 		
+	create_connections(); 		
 }
 
 Network::~Network()
@@ -61,33 +65,28 @@ Network::~Network()
 }
 
 void Network::update()
-{	
-	int line = 0; 
+{	 
 	for(auto& element : Population_) 
 	{ 
 		bool spiking = element->update_state_(); 
 		
 		if(spiking) 
 		{ 
-			for (int row = 0; row < getPop(); ++row) 
+			std::vector<unsigned int> temp = element->getMyTargets(); 
+			int g = 1; 
+			if(element->Is_it_excitatory() == false) { g = -5; }
+			
+			for (unsigned int row = 0; row < temp.size(); ++row) 
 			{ 
-					int g = 1; 
-					if(element->Is_it_excitatory() == false) 
-					{ 
-						g *= -5; 
-					}
-					int j = TheMatrix_[line][row];  
-					Population_[row]->write_buffer(g*j); 
-					
-				}
+					Population_[temp[row]]->write_buffer(g); 			
 			}
-			++line; 
+		}
 	}
 			
 }
 
 
-int Network::getPop()
+unsigned int Network::getPop() const
 {
 	return Population_.size(); 	
 }
@@ -97,19 +96,36 @@ void Network::write()
 	std::ofstream matrix("mymatrix.txt"); 
 	if(matrix.is_open())
 	{
-		for(int i = 0; i < getPop(); ++i) 
+		unsigned int i = 0; 
+		for(auto& element : Population_) 
 		{
-			for(int j = 0; j < getPop(); ++j) 
-			{ 
-				matrix << " " << TheMatrix_[i][j] << " " ; 
+			std::vector<unsigned int> temp = element->getMyTargets(); 
+			matrix << "Neurone " << i << " has the following targets" << '\t';
+			unsigned int max = temp.size(); 
+			
+			for(unsigned int index = 0; index < max; ++index) 
+			{
+				matrix << temp[index] << '\t';
 			}
-			matrix << std::endl; 
+			matrix << '\n';
+			++i;
 		}
-		
-	}else{ 
-		std::cerr << "Could not open matrix file." << std::endl; 
-		}
+	}else{ std::cerr << "Could not open matrix file." << std::endl; }
 	matrix.close();
+	
+	std::ofstream theSpikes("Spikes.txt"); 
+	if(theSpikes.is_open())
+	{
+		for(auto& element :Population_) 
+		{
+			for(unsigned int i = 0; i < element->getTheSpikes().size(); ++i)
+			{
+				theSpikes << '\t' << element->getTheSpikes()[i] << '\t' << '\n'; 
+			}
+		}
+	}else { std::cerr << "Could not save spikes of network. " << std::endl; 
+	}
+	theSpikes.close(); 
 }
 
 void Network::add_to_network(Neuron* n) 
@@ -137,7 +153,7 @@ void Network::current_buffers() ///buffers content at the end of the simulation
 		for(auto& element : Population_) 
 		{ 
 			Buffers << "The neuron " << i << " buffer contains " ;
-			for(int j=0; j < element->get_buffer2().size(); ++j) 
+			for(int j=0; j < element->buffer_size(); ++j) 
 			{ 
 			
 			Buffers << element->get_buffer(j) << " "; 
@@ -153,77 +169,31 @@ void Network::current_buffers() ///buffers content at the end of the simulation
 	Buffers.close();
 }
 
-void Network::create_matrix()
+void Network::create_connections()
 { 
-		std::vector<int> temp(getPop(), 0); 
-		for(int line = 0; line < getPop(); ++line)
-		{
-			int i = 0; 
-			int max_ex = nbre_excitatory_ / 10; 
-			while(i < max_ex)
-			{ 
-				int column = roll(0, nbre_excitatory_ -1); 
-				int random = roll(0,10);
-				if(temp[column]== 0) 
-				{
-					temp[column]  = random;
-					++i;
-				}
-			}
-			int j = nbre_excitatory_; 
-			int Max_in = nbre_inhibitory_ / 10; 
-			while(j < Max_in) 
-			{
-				int column = roll(nbre_excitatory_, getPop()); 
-				int random = roll(0,10); 
-				if(temp[column] == 0) 
-				{ 
-					temp[column] = random; 
-					++j;
-				}
-			}
-				
-			TheMatrix_[line] = temp; 
-		}
-		//refine_network();
-}
+	std::cout << "creating connections " << std::endl; 
 	
-
-void Network::refine_network()
-{
-	for(int column = 0; column < getPop(); ++column) 
-	{
-		int i = nbre_excitatory_; 
-		int max = nbre_excitatory_ / 10; 
-		std::cout << "max ex " << max << std::endl; 
-		while(i > max) 
-		{
+	for(unsigned int i = 0; i < getPop(); ++i) 
+	{	
+		unsigned int max_ex = 0.1 * nbre_excitatory_; 
+		unsigned int max_in = 0.1 * nbre_inhibitory_;
 			
-			int row = roll(0, nbre_excitatory_); 
-			if(TheMatrix_[row][column] != 0)
-			{
-				std::cout << "changing matrix for ex " << std::endl; 
-				TheMatrix_[row][column] = 0; 
-				--i;
-			}
+		for(unsigned int index = 0; index < max_ex; ++index)
+		{
+			int id = roll(0, nbre_excitatory_ -1 );   
+			
+			Population_[id]->changeMyTargets(i);
+ 
 		}
 		
-		int j = nbre_inhibitory_; 
-		int Max = nbre_inhibitory_ / 10; 
-		while(j > Max) 
-		{ 
-			
-			int row = roll(nbre_excitatory_ + 1, getPop()); 
-			if(TheMatrix_[row][column] != 0)
-			{ 
-				std::cout << "row " << row << " col " << column << " " << std::endl; 
-				TheMatrix_[row][column] = 0; 
-				--j;
-			}
-			std::cout << " j " <<j << std::endl; 
-		} 
-	}
+		for(unsigned int index = 0; index < max_in; ++index)
+		{
+			int id = roll(nbre_excitatory_, getPop()-1);   
+		
+			Population_[id]->changeMyTargets(i);	
+		}	
+	}	
 }
-
+	
 	
 

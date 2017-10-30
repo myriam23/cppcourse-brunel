@@ -8,18 +8,17 @@
 class Network {
 	
 	public: 
-	Network(double, double, double, double, double, int, int); 
-	Network(); 
+	Network(std::array<double, 2>, double, double, double, double, int, int, int); 
+	Network(std::array<double, 2> ); 
 	~Network(); 
 
 	void update(); 
 	int roll(int, int); 
 	void add_to_network(Neuron*);
 	void write(); 
-	int getPop(); 
+	unsigned int getPop() const; 
 	void current_buffers(); 
-	void create_matrix();
-	void refine_network(); 
+	void create_connections();
 	
 	
 	private:
@@ -27,7 +26,7 @@ class Network {
 	std::vector<std::vector<double>> MyConnections_; ///double will show number of connections between neurons. 
 	int nbre_excitatory_; 
 	int nbre_inhibitory_; 
-	std::vector<std::vector<int>> TheMatrix_;
+	
 
 
 };
