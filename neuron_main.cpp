@@ -10,8 +10,8 @@ using namespace std;
 
 int main()
 {
-	 double stop_time(1000); 
-	 double time_inc(0.1); 
+	
+	double time_inc(0.1); 
 	array< double, 2> time_interval_; 
 	double wei(0); 
 	 double del(0); 
@@ -27,12 +27,12 @@ int main()
 		cout << "What are the delay and weight your neurons ? " << endl; 
 		cin >> del; 
 		cin >> wei;
-		cout << "What are the n_ and g your neurons ? " << endl; 
+		cout << "What is your ratio (v_ext/v_th) and g your neurons ? " << endl; 
 		cin >> et;
 		cin >> g;
 		int c; 
 		int d;
-		do { 
+		
 			cout << "How long do you want your simulation to run in [ms] (Note: no more than 1000 ms) ? " << endl;  
 			double a; 
 			cin >>a;
@@ -45,8 +45,6 @@ int main()
 			cout<<"How many inhibitory neurons do you want in your network ?" << endl; 
 			cin >> d;
 			
-		 
-		 } while ((time_interval_[1] > stop_time));  
 										
 			Network* network = new Network(time_interval_, time_inc, del, wei, d, c, et, g );
 			
@@ -58,10 +56,14 @@ int main()
 			int a; 
 			cin >> a; 
 			int b; 
-			cin >> b; 
+			cin >> b;
+			 
+			cout << "What is your ratio (v_ext/v_th) and g your neurons ? " << endl; 
+			cin >> et;
+			cin >> g;
 			time_interval_[0] = a; 
 			time_interval_[1] = b; 
-			Network* network = new Network(time_interval_, g); 
+			Network* network = new Network(time_interval_, et, g); 
 		}  
 	
 	cout << "The simulation has ended." << endl;

@@ -1,32 +1,33 @@
 #include "neuron.hpp" 
-#include <vector>
-
+#include <iostream> 
+#include <fstream> 
 
 #ifndef NETWORK_HPP
 #define NETWORK_HPP
 
+
 class Network {
 	
 	public: 
-	Network(std::array< double, 2>,  double,  double, double,  int,  int,  double, double); 
-	Network(std::array< double, 2>, double ); 
+	Network(std::array< double, 2>,  double,  double, double,  int,  int,  double, double);  /*! < This constructor allows the user to choose the update rate of the simulation (time increment) and the size of the population. It also allows the user to define the delay and efficiency of its neurons' spikes. */
+	Network(std::array< double, 2>, double, double ); 
 	~Network(); 
-
-	void update(); 
-	unsigned int roll(int, int); 
-	void add_to_network(Neuron*);
-	void savetime(unsigned int); 
-	std::vector<Neuron*> getPopulation_() const;
-	 unsigned int getPop() const; 
+	
+	void add_to_network(Neuron*);	
 	void create_connections();
+	unsigned int roll(int, int); 
+	void update();
+	std::vector<Neuron*> getPopulation_() const;
+	unsigned int getPop() const; 
+	 
 	
 	private:
-	std::vector<Neuron*> Population_; ///vector of pointers on all neurons in the network 
-	 int nbre_excitatory_; 
-	 int nbre_inhibitory_; 
-	 double network_time;
-	 double end_simulation;
-	 double dt;
+	std::vector<Neuron*> Population_; /*!<This vector contains pointers on all neurons that are part of the network.*/
+	unsigned int nbre_excitatory_;   /*!<Number of excitatory neurons in the network */
+	unsigned int nbre_inhibitory_; 	/*!<Number of inhibitory neurons in the network */
+	double network_time;	/*!<Clock of the network*/
+	double end_simulation; 	/*!< Time the simultation must end*/
+	double dt;				/*!<Indicates the rate of updating of the network; every dt, the network and all its neurons update*/
 	
 	
 };
