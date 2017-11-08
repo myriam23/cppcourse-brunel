@@ -3,25 +3,24 @@
 #include <cmath>
 #include <array> 
 
-/*
+
 TEST(NeuronTest,MembranePotential) 
 { 
-	std::array<double, 2> interval = {0, 20};
-	Neuron* neuron = new Neuron(interval, 0.1, 1.5, 0.1, 2, 5, true); 
-	neuron->set_iext(1); 
+	Neuron* neuron = new Neuron(0, 0.1, 1.5, 0.1, 2, 5, true); 
+	neuron->set_iext(1.01); 
 	neuron->update_state_(); 
 	
-	EXPECT_EQ(20*(1-std::exp(-0.1/20.0)), neuron->get_v_m()); 
+	EXPECT_EQ(1.01*20*(1-std::exp(-0.1/20.0)), neuron->get_v_m()); 
 	delete neuron;
-	neuron = nullptr;
-		
-} */
+	neuron = nullptr;	
+} 
 
-TEST(ConnectionTest, numberConnection) 
+TEST(ConnectionTest, NumberConnection) 
 {
 	unsigned int number_connections(0);
 	std::array<double, 2> interval = {0, 20};
-	Network* net = new Network(interval, 0.1, 1.5, 0.1, 20, 80, 2,5);
+	std::string file = "NumberConnectionTest.txt"; 
+	Network* net = new Network(interval, 0.1, 1.5, 0.1, 20, 80, 2,5, file);
 	
 	for(auto& element : net->getPopulation_()) 
 	{ 
@@ -32,19 +31,25 @@ TEST(ConnectionTest, numberConnection)
 	net = nullptr;
 }
 
-TEST(ConnectionTest, typeConnection) 
+TEST(ConnectionTest, TypeConnection) 
 {
 	unsigned int number_connections(0);						
 	std::array<double, 2> interval = {0, 20};
-	Network* net = new Network(interval, 0.1, 1.5, 0.1, 20, 80, 2,5);
-	double random = net->roll(0,99); 
+	std::string file = "TypeConnectionTest.txt"; 
+	Network* net = new Network(interval, 0.1, 1.5, 0.1, 20, 80, 2,5, file);
+	
+	static std::random_device rd;
+    static std::mt19937 gen(rd());
+    static std::uniform_int_distribution<int> roll(0,99);
+ 
+	int random = roll(gen); 
 	unsigned int input_ex(0); 
 	unsigned int input_in(0);
 	for(unsigned int i = 0; i < net->getPop(); ++i)  
 	{ 
 		std::vector<int> temp = net->getPopulation_()[i]->getMyTargets(); //targets of the source 
 		double w = net->getPopulation_()[i]->getweight(); //type of the source 
-														//should be positive for i < 80 then negative 
+													
 		for(unsigned int row = 0; row <temp.size(); ++row) 
 		{ 
 			unsigned int target = temp[row];  //name of the targets of the source 
@@ -58,38 +63,66 @@ TEST(ConnectionTest, typeConnection)
 	
 }
 
-TEST(BufferTest, writeBuffer) 
+TEST(BufferTest, WriteReadReset) 
 {
-	
-	std::array<double, 2> interval = {0, 20};
-	Network* net = new Network(interval, 0.1, 1.5, 0.1, 20, 80, 2, 5);
-	Neuron* N = new Neuron(interval, 0.1,1.5, 0.1, 2, true, 5);
-	N = net->getPopulation_()[0];
-	N->set_iext(2);
-	bool spiking = false; 
-	do{ 
-		spiking = N->update_state_(); 
-	}while(!spiking);
-	
-		unsigned int t_spike = N->time_to_steps(N->getspiketime());
-		
-		unsigned int index = (t_spike + 15)%16; 		
 
-		int target_one = N->getMyTargets()[0]; 		
-		Neuron* N2 = new Neuron(interval, 0.1,1.5, 0.1, 2, true, 5);
-		N2 = net->getPopulation_()[target_one]; 
-		N2->write_bufferTest(N->getweight(), index); 
-		std::vector<double> temp = N2->getBuffer(); 
-		
-		ASSERT_EQ(16, temp.size()); 
-		ASSERT_EQ(16, temp.size()); 
-		ASSERT_EQ(16, temp.size()); 
-		ASSERT_LE(index, temp.size()); 
-		double value = temp[index]; 
-		EXPECT_EQ(0.1, value); 
-	
+	Network* net = new Network({0, 20}, 0.1, 1.5, 0.1, 20, 80, 2, 5, "BufferTest.txt");
+	Neuron* source = new Neuron(0, 0.1,1.5, 0.1, 2, true, 5);
+	Neuron* Ni = new Neuron(0, 0.1,1.5, 0.1, 2, 5, true);
+
+	bool spiking = false; 
+	for(unsigned int j = 0; j < net->getPop(); ++j) 
+	{
+			source = net->getPopulation_()[j];
+			source->set_iext(2);
+			 
+			do{ 
+				spiking = source->update_state_(); 
+			}while(!spiking);
+			
+			unsigned int index = (source->getspiketime() + 15)%16; 		
+			
+			for(unsigned int i = 0; i < source->getMyTargets().size(); ++i) 
+			{
+				int target_i = source->getMyTargets()[i]; 		
+								
+				Ni = net->getPopulation_()[target_i]; 
+				Ni->set_step(source->getspiketime()); 				
+				Ni->write_buffer(source->getweight()); 
+				std::vector<double> temp = Ni->getBuffer(); 
+				
+				ASSERT_EQ(16, temp.size());  
+				ASSERT_LE(index, temp.size()); 
+				
+				Ni->set_step(15); 
+				double value = Ni->read_buffer(); 				
+				Ni->reset_buffer(); 					
+				if(source->Is_it_excitatory()) 
+				{ EXPECT_EQ(0.1, value); }else{ EXPECT_EQ(-0.5, value); }; 
+				EXPECT_EQ(0, Ni->read_buffer()); 
+			}
+	}
 		delete net; 
 		net = nullptr; 
+}
+
+TEST(State, BufferingRefractory) 
+{
+	Network* net = new Network({0, 20}, 0.1, 1.5, 0.1, 20, 80, 2, 5, "StateTest.txt");
+	unsigned int step = 0;
+	for(auto& element : net->getPopulation_()) 
+	{
+		do { 
+			element->update_state_(); 
+			++step;
+		}while(step < 150); 
+		if(element->Is_it_refractory()) 
+		{ EXPECT_EQ(0, element->get_v_m()); EXPECT_LE(150 - element->getspiketime(), 20) ;}	
+		else{ EXPECT_GE(element->get_v_m(), 0); EXPECT_GT(150-element->getspiketime(), 20); }
+		
+	}
+	delete net; 
+	net = nullptr; 
 }
 
 int main(int argc, char **argv) 
