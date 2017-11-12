@@ -47,8 +47,8 @@ Neuron::Neuron(int s,double h, double del,  double w,  double e,double g, bool t
 	}	
 } 
 Neuron::~Neuron(){} 
-/** This update method is called at every step for every neuron of the network.
- * First, it checks the neurone state; buffering or refractory ?
+/** This update method is called at every step for every neuron of the network. It returns a boolean depending on the neuron's state (spiking or not). **/
+/*First, it checks the neurone state; buffering or refractory ?
  * If the neuron is buffering, it reads its buffer at the correct index thus taking into consideration
  * all inputs from the network to compute the new membrane potential. Once that is done, the buffer at the current index
  * is reset.
@@ -61,7 +61,7 @@ Neuron::~Neuron(){}
  * Afterwards, the ring buffer at the current time is reset; indeed all inputs received at that instant will not
  * be taking into account as the neuron was in a refractory state. The clock is then incremented and the spiking condition
  * returned as false. 
- * */
+ */
 bool Neuron::update_state_()
 {	
 	static std::random_device number_random; 
@@ -104,17 +104,16 @@ bool Neuron::update_state_()
 }
 
 
-/** This method is called during the update of the neuron. It reads the buffer at the correct index 
- * by converting the current time to the corresponding index. To do so, there is a call to current_index(). 
- * The returned value is the sum of all spikes that arrive at the current time.
- * */
+/** This method is called during the update of the neuron. It reads the buffer at the correct index and returns the value saved there 
+ * which corresponds to the sum of all inputs.**/ 
 double Neuron::read_buffer()  
 { 
 	return Ring_buffer_[neuron_step % Buffer_size];
 } 
 /** This method is called when the sources of the neuron spike in the update method of the network. 
  * The argument is the efficiency of the source neuron that has spiked and thus sent its spike to its targets.
- * The stimulation is written in the Ring buffer of the target while taking into account the delay of the spike.
+ * The stimulation is written in the Ring buffer of the target while taking into account the delay of the spike. 
+ * The method returns nothing.
  * */
 void Neuron::write_buffer(double w) 
 { 	
@@ -123,30 +122,19 @@ void Neuron::write_buffer(double w)
 	Ring_buffer_[index] =  Ring_buffer_[index] + w; 		
 } 
 
-/**This method is used to test whether or not the writing in the buffer is done correctly. 
- * The difference to write_buffer() is it takes the index in which it must write as argument. 
- * Nonetheless, the computation of the index is done the same way, only outside of the method
- * for practical reasons. 
- * */
-void Neuron::write_bufferTest(double g, int i)
-{ 
-	assert(i < Buffer_size);
-	Ring_buffer_[i] += g; 	
-}
 /** At every time step, the ring buffer must reset its current index to 0.  
  * */
 void Neuron::reset_buffer() 
 {
 	Ring_buffer_[neuron_step % Buffer_size] = 0.0; 
 }
-/** Returns the buffer of the neuron while ensuring it is not modified.
- *
+/** Allows to access the buffer of the neuron outisde of the class, while ensuring it is not modified.
  * */
 std::vector<double> Neuron::getBuffer() const
 {
 	return Ring_buffer_; 
 }
-/** Returns the targets of the neuron while ensuring they are not modified.
+/** Allows to access targets of the neuron outisde of the class, while ensuring they are not modified.
  * */
 std::vector< int> Neuron::getMyTargets() const
 {
@@ -160,7 +148,6 @@ void Neuron::changeMyTargets(unsigned int target_id)
 {
 	MyTargets_.push_back(target_id);
 }
-
 
 double Neuron::get_v_m() const
 {

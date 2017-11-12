@@ -64,7 +64,8 @@ Experiment::Experiment()
 }
 Experiment::~Experiment(){}
 
-
+/** Figure A will have a ratio between the firing rate of the external connections and the threshold firing rate of the network of 2 
+ * and a ratio between the excitatory neurons' efficiency and the inhibitory's one of 3. **/ 
 void Experiment::ExperimentA()
 {
 	file = "FigureA.txt";
@@ -76,6 +77,8 @@ void Experiment::ExperimentA()
 	Net1 = nullptr; 
 }
 
+/** Figure B will have a ratio between the firing rate of the external connections and the threshold firing rate of the network of 4
+ * and a ratio between the excitatory neurons' efficiency and the inhibitory's one of 6. **/ 
 void Experiment::ExperimentB()
 {
 	file = "FigureB.txt";
@@ -88,6 +91,8 @@ void Experiment::ExperimentB()
 	Net1 = nullptr; 
 }
 
+/** Figure C will have a ratio between the firing rate of the external connections and the threshold firing rate of the network of 2 
+ * and a ratio between the excitatory neurons' efficiency and the inhibitory's one of 5. **/ 
 void Experiment::ExperimentC()
 {
 	file = "FigureC.txt"; 
@@ -99,6 +104,8 @@ void Experiment::ExperimentC()
 	Net1 = nullptr;
 }
 
+/** Figure D will have a ratio between the firing rate of the external connections and the threshold firing rate of the network of 0.9 
+ * and a ratio between the excitatory neurons' efficiency and the inhibitory's one of 4.5. **/ 
 void Experiment::ExperimentD()
 {
 		

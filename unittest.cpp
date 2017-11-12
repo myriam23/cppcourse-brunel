@@ -3,7 +3,7 @@
 #include <cmath>
 #include <array> 
 
-
+/*!<Allows to test the computation of the potential membrane with an external current and no random input from external connections.*/
 TEST(NeuronTest,MembranePotential) 
 { 
 	Neuron* neuron = new Neuron(0, 0.1, 1.5, 0.1, 2, 5, true); 
@@ -15,6 +15,7 @@ TEST(NeuronTest,MembranePotential)
 	neuron = nullptr;	
 } 
 
+/*!<Checks that neurons have an average of targets of 10% of the population.*/
 TEST(ConnectionTest, NumberConnection) 
 {
 	unsigned int number_connections(0);
@@ -31,6 +32,7 @@ TEST(ConnectionTest, NumberConnection)
 	net = nullptr;
 }
 
+/*!<Will make sure that inhibitory and exciatory neurons have a certain efficiency and that each neuron receives 4 times more excitatory inputs than inhibitory ones.*/
 TEST(ConnectionTest, TypeConnection) 
 {
 	unsigned int number_connections(0);						
@@ -47,14 +49,14 @@ TEST(ConnectionTest, TypeConnection)
 	unsigned int input_in(0);
 	for(unsigned int i = 0; i < net->getPop(); ++i)  
 	{ 
-		std::vector<int> temp = net->getPopulation_()[i]->getMyTargets(); //targets of the source 
-		double w = net->getPopulation_()[i]->getweight(); //type of the source 
+		std::vector<int> temp = net->getPopulation_()[i]->getMyTargets();
+		double w = net->getPopulation_()[i]->getweight(); 
 													
 		for(unsigned int row = 0; row <temp.size(); ++row) 
 		{ 
-			unsigned int target = temp[row];  //name of the targets of the source 
+			unsigned int target = temp[row];  
 
-			if((random == target)&& ( w == -0.5)) { ++input_in; } //if the source tarhets the random neurone chosen && the source isinhibitory then add that to the sum of inhibitory sources targeting random 
+			if((random == target)&& ( w == -0.5)) { ++input_in; }
 			if((random == target)&& (w == 0.1)) { ++input_ex; }
 		}
 	} 
@@ -63,6 +65,7 @@ TEST(ConnectionTest, TypeConnection)
 	
 }
 
+/*!<Checks that when a spike occurs, the neuron writes correctly in the buffer of its targets, and the buffers are correctly read and reset.*/
 TEST(BufferTest, WriteReadReset) 
 {
 
@@ -105,7 +108,7 @@ TEST(BufferTest, WriteReadReset)
 		delete net; 
 		net = nullptr; 
 }
-
+/*!<Checks that all parameters change according to the neuron's state.*/
 TEST(State, BufferingRefractory) 
 {
 	Network* net = new Network({0, 20}, 0.1, 1.5, 0.1, 20, 80, 2, 5, "StateTest.txt");

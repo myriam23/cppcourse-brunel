@@ -7,7 +7,7 @@
 #ifndef NEURON_HPP
 #define NEURON_HPP
 
-class Neuron {
+class Neuron { /*!<Neuron class will define every neuron of the network.*/
 	
 	public:
 	Neuron( int,  double,  double,  double,   double,  double, bool);  
@@ -20,7 +20,6 @@ class Neuron {
 	void write_buffer(double); 
 	void reset_buffer();
 	std::vector<double> getBuffer() const; 
-	void write_bufferTest(double, int);
 	
 	
 	void changeMyTargets(unsigned int);
@@ -46,8 +45,8 @@ class Neuron {
 	bool refractory_; /*!<States of neuron: refractory means it cannot receive any stimulation.*/
 	bool excitatory_; /*!<Represents the type of the neuron.*/
 	
-	double time_increment_; 
-	double delay_; 
+	double time_increment_; /*!<Expressed in ms.*/
+	double delay_; /*!<Expressed in ms.*/
 	unsigned int delaySteps;/*!<This is the conversion of the delay into steps; it is declared as attribute so the method time to steps is called only once; this value is used multiple times. */
 	
 	double weight_; /*!< This is the efficiency with which the neuron sends its spikes. It is chosen by the user.*/

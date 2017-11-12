@@ -10,10 +10,11 @@ Network::Network(std::array< double, 2> temp, double e, double g, std::string na
 	end_step = static_cast <unsigned long>(std::ceil(temp[1]/0.1));
 	network_step = static_cast <unsigned long>(std::ceil(temp[0]/0.1));
 	
-	/** This loop allows the creation of the neurons simultaneously to the creation of pointers on them. 
+	/*This loop allows the creation of the neurons simultaneously to the creation of pointers on them. 
 	 * It will first run for all excitatory neurons of the network and then the inhibitory ones. This allows for an
-	 * easier indexation and later access of the neurons depending on their type
-	 * */
+	 * easier indexation and later access of the neurons depending on their type. I have chosen to use the if condition 
+	 * instead of an imbricated for loop.
+	 */
 	for(unsigned int i = 0; i < (nbre_excitatory_ + nbre_inhibitory_); ++i) 
 	{ 
 		if( i < nbre_excitatory_) 
@@ -65,20 +66,23 @@ Network::~Network()
 	
 }
 
+/** This method makes the population of the network accessible from outside of the class, while ensuring it is not modified. It is solely used during the tests. **/ 
 std::vector<Neuron*> Network::getPopulation_() const
 {
 	return Population_; 
 } 
 
 /** This method induces the update of the Network and all its neurons every time incrementation through the 
- * call to the update_state_() method of the neurons. 
- * Everytimes a neuron is updated, the method checks whether or not it has spiked and if so, 
+ * call to the update_state_() method of the neurons. It returns nothing. The update is called as long as the end 
+ * of the simulation hasn't been reached**/
+/* Everytimes a neuron is updated, the method checks whether or not it has spiked and if so, 
  * the spike is sent to all targets of the neuron that has spiked. The sending of the spike 
  * consists of saving the efficiency of the spiking neuron in every Ring_Buffer of its targets at 
  * the correct index. Thus the index has to take into account the delay of the spike as it has been defined 
  * during the construction of the network and all its neurons.
- * Moreover, for the first 50 neurons spiking, the time at which they spiked is saved in a text file. 
- * */
+ * Moreover,the time at which the neurons spiked is saved in a text file to allow for a better understanding of the 
+ * simulation through a graph later on. 
+ */
 void Network::update()
 {	 
 
@@ -94,8 +98,6 @@ void Network::update()
 	{
 		for(unsigned int i = 0; i < size_pop; ++i) 
 		{ 
-									
-
 			spiking = Population_[i]->update_state_(); 
 			if(spiking)
 			{ 
@@ -108,7 +110,6 @@ void Network::update()
 						std::cerr << "Could not save spike time." << std::endl; 
 					}
 			
-					
 					temp = new std::vector< int>(Population_[i]->getMyTargets()) ; 
 					size = temp->size();
 					g = Population_[i]->getweight(); 
@@ -138,22 +139,10 @@ void Network::add_to_network(Neuron* n)
 {
 	Population_.push_back(n); 	
 }			
-/** This method return a uniformly distributed number in the range taken as argument. 
- * It is used mainly during the creation of the connections. However, it is a method, because I use it for testing as well. 
- * The random device and generator have been declared as static to allow for a faster execution of the call to the method. 
- * Nevertheless, the distribution itself must not be declared static or it will be identical for all calls. 
- * */
-/* 
-unsigned int Network::roll(int min, int max)
-{
-	static std::random_device rd;
-    static std::mt19937 gen(rd());
-    static std::uniform_int_distribution<int> excitatory(0, nbre_excitatory_ - 1);
-    static std::uniform_int_distribution<int> inhibitory(nbre_excitatory_, getPop());
-    
-	return dis(gen);
-}*/
-/** The first loop will go over the whole population of the network and 
+
+/** This method is called in the constructor of the Network. 
+ * It creates the connections between the different neurons of the network and does not return anything.**/
+ /* The first loop will go over the whole population of the network and 
  * for each neuron it will randomly choose 10% percent of the population as sources of inputs. 
  * Each neuron will thus receive an input from 10% of the inhibitory neurons of 
  * the population and 10% of the excitatory neurons. 
